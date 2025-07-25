@@ -2,18 +2,18 @@
 
 #include <AccelStepper.h>
 
+// class representing singular joint/stepper incl gearbox
 class Joint{
   private:
-    AccelStepper __stepper;
-    float __gearRatio;
-    float __positionDEG;
-    float __stepSize;
-    float __upperBoundDEG;
-    float __lowerBoundDEG;
-    int __homePin;
+    AccelStepper __stepper;       // AccelStepper object controlling steppermom
+    float __gearRatio;            // gearratio from motor to output
+    float __stepSize;             // step size of stepper motor (1.8, 0.9, 0.45, 0.225, 0.1125)
+    float __upperBoundDEG;        // upper boundary limiting the output position
+    float __lowerBoundDEG;        // lower boundary limiting the output position
+    int __homePin;                // pin holding the input of the homing sensor
 
   public:
-    Joint(int stepPin, int dirPin, int homePin, int acc, float gearRatio, float stepSize, float upperBoundDEG, float lowerBoundDEG)
+    Joint(int stepPin, int dirPin, int homePin, float gearRatio, float stepSize, float upperBoundDEG, float lowerBoundDEG)
     : __stepper(AccelStepper::DRIVER, stepPin, dirPin),
       __gearRatio(gearRatio),
       __stepSize(stepSize),
@@ -21,26 +21,20 @@ class Joint{
       __lowerBoundDEG(lowerBoundDEG),
       __homePin(homePin)
     {
-      __stepper.setAcceleration(acc);
-      pinMode(__homePin, INPUT);
+      pinMode(__homePin, INPUT);  // set homing pin to input
     }
 
+    // calculate a position in steps from given position in degrees
     int degPos2stepPos(float deg){
       return (deg * __gearRatio) / __stepSize;
     }
 
+    // calculate a position in degrees from given position in stepmoms
     float stepPos2degPos(int steps){
       return (steps * __stepSize) / __gearRatio;
     }
 
-    void setSpeed(int speed){
-      __stepper.setMaxSpeed(speed);
-    }
-
-    void setAcceleration(int acc){
-      __stepper.setAcceleration(acc);
-    }
-
+    // setting the target rotation of the stepper in steps from degs given
     void setTargetRotJoint(float deg){
       int targetPos = degPos2stepPos(deg);
       int upperBoundSTEP = degPos2stepPos(__upperBoundDEG);
@@ -50,22 +44,24 @@ class Joint{
       }
     }
 
+    // setter for setting stepper speed gwaungi
+    void setSpeed(int speed){ __stepper.setMaxSpeed(speed); }
+
+    // setter for setting stepper acceleration
+    void setAcceleration(int acc){ __stepper.setAcceleration(acc); }
+
+    // setter for setting current position counter to certain schall-weli
+    void setPosition(int position){ __stepper.setCurrentPosition(position); }
+
+    // getter for current pos of stepper
     long getPosition(){ return __stepper.currentPosition(); }
-
-    float getGearRatio(){ return __gearRatio; }
-
-    float getStepSize(){ return __stepSize; }
-
-    void setPosition(int position){
-      __stepper.setCurrentPosition(position);
-    }
 
     void run(){
       __stepper.run();
     }
 };
 
-void moveJointsTo(float targets[], int numJoints, Joint* joints[], int refSpeed){
+void moveJointsTo(float targets[], int numJoints, Joint* joints[], int refSpeed, int refAccel, int minSpeed, int minAccel){
   long deltas[numJoints];
   long maxDelta = 0;
 
@@ -83,11 +79,13 @@ void moveJointsTo(float targets[], int numJoints, Joint* joints[], int refSpeed)
   for (int i=0; i < numJoints; i++){
     if (maxDelta == 0){
       joints[i]->setSpeed(0);
+      joints[i]->setAcceleration(0);
     } else {
       float scale = (float)deltas[i] / (float)maxDelta;
-      joints[i]->setSpeed(refSpeed * scale);
+      int speed = max(minSpeed, (int)(refSpeed * scale));
+      int accel = max(minAccel, (int)(refAccel * scale));
+      joints[i]->setSpeed(speed);
+      joints[i]->setAcceleration(accel);
     }
   }
 }
-
-// J1 = Joint(1, 2, 16, 20.0f, 0.45f, 180.0f, 0.0f);

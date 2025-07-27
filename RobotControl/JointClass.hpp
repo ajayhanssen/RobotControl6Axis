@@ -10,7 +10,7 @@ class Joint{
     float __stepSize;             // step size of stepper motor (1.8, 0.9, 0.45, 0.225, 0.1125)
     float __upperBoundDEG;        // upper boundary limiting the output position
     float __lowerBoundDEG;        // lower boundary limiting the output position
-    int __homePin;                // pin holding the input of the homing sensor
+    int __homePin;                // pin holding the input of the homing sensordsd
 
   public:
     Joint(int stepPin, int dirPin, int homePin, float gearRatio, float stepSize, float upperBoundDEG, float lowerBoundDEG)

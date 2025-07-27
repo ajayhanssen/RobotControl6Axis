@@ -3,7 +3,7 @@
 
 int refSpeed = 1000;
 
-// Joint(int stepPin, int dirPin, int homePin, int acc, float gearRatio, float stepSize, float upperBoundDEG, float lowerBoundDEG)
+// Joint(int stepPin, int dirPin, int homePin, float gearRatio, float stepSize, float upperBoundDEG, float lowerBoundDEG)
 Joint J1 = Joint(J1STEP, J1DIR, J1HOME, 20.0f, 0.45f, 360.0f, 0.0f);
 Joint J2 = Joint(J2STEP, J2DIR, J2HOME, 20.0f, 0.45f, 360.0f, 0.0f);
 
@@ -28,4 +28,5 @@ void loop() {
   J2.run();
   J5.run();
   J6.run();
+  
 }

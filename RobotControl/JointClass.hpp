@@ -11,13 +11,14 @@ class Joint{
     float __upperBoundDEG;        // upper boundary limiting the output position
     float __lowerBoundDEG;        // lower boundary limiting the output position
     int __homePin;                // pin holding the input of the homing sensordsd
-    enum HomingState{
+    enum HomingState{             // state machine enum
       IDLE,
       SEEK_HOME,
       BACKOFF,
       APPROACH,
       HOMED
     };
+    HomingState __homingState = IDLE;   // state machine
 
   public:
     Joint(int stepPin, int dirPin, int homePin, float gearRatio, float stepSize, float upperBoundDEG, float lowerBoundDEG)
@@ -51,7 +52,57 @@ class Joint{
       }
     }
 
-    // function for homing, blocking leider
+    // init state machine, fast movement to sens
+    void startHoming(){
+      __homingState = SEEK_HOME;
+      __stepper.setMaxSpeed(500);
+      __stepper.setAcceleration(300);
+      __stepper.move(-100000);
+    }
+
+    // not blocking homing process
+    void updateHoming(){
+      switch (__homingState){
+        case IDLE:
+          return;
+        case HOMED:
+          return;
+        
+        case SEEK_HOME:
+          if (digitalRead(__homePin) == HIGH){
+            __stepper.stop();
+            __homingState = BACKOFF;
+            __stepper.setMaxSpeed(300);
+            __stepper.move(500);
+          }
+          break;
+
+        case BACKOFF:
+          if (__stepper.distanceToGo() == 0){
+            __homingState = APPROACH;
+            __stepper.setMaxSpeed(100);
+            __stepper.setAcceleration(50);
+            __stepper.move(-1000);
+          }
+          break;
+        
+        case APPROACH:
+          if (digitalRead(__homePin) == HIGH){
+            	__stepper.stop();
+              __stepper.setCurrentPosition(0);
+              __homingState = HOMED;
+          }
+          break;
+      }
+
+      __stepper.run();
+    }
+
+    bool isHomed(){
+      return __homingState == HOMED;
+    }
+
+    // blockin ghoming function
     void home(){
       
       // move towards sensor with vollgas

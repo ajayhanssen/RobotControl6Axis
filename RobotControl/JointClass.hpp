@@ -11,6 +11,13 @@ class Joint{
     float __upperBoundDEG;        // upper boundary limiting the output position
     float __lowerBoundDEG;        // lower boundary limiting the output position
     int __homePin;                // pin holding the input of the homing sensordsd
+    enum HomingState{
+      IDLE,
+      SEEK_HOME,
+      BACKOFF,
+      APPROACH,
+      HOMED
+    };
 
   public:
     Joint(int stepPin, int dirPin, int homePin, float gearRatio, float stepSize, float upperBoundDEG, float lowerBoundDEG)
@@ -42,6 +49,51 @@ class Joint{
       if (targetPos <= upperBoundSTEP && targetPos >= lowerBoundSTEP){
         __stepper.moveTo(targetPos);
       }
+    }
+
+    // function for homing, blocking leider
+    void home(){
+      
+      // move towards sensor with vollgas
+      __stepper.setMaxSpeed(500);
+      __stepper.setAcceleration(300);
+      __stepper.move(-100000);
+
+      // while sensor is not triggered, run
+      while(digitalRead(__homePin) == LOW){
+        __stepper.run();
+      }
+
+      // stop as soon as sens reached
+      __stepper.stop();
+
+      // wart gach
+      delay(100);
+
+      // move back a little
+      __stepper.move(500);
+      while(__stepper.distanceToGo() != 0){
+        __stepper.run();
+      }
+
+      // wart nomal gach
+      delay(100);
+
+      // move towards sensor with halbgas
+      __stepper.setMaxSpeed(100);
+      __stepper.setAcceleration(50);
+      __stepper.move(-10000);
+
+      // while sensor not triggered, run again
+      while(digitalRead(__homePin) == LOW){
+        __stepper.run();
+      }
+
+      // stop if sensor reached
+      __stepper.stop();
+
+      // set position to zero
+      __stepper.setCurrentPosition(0);
     }
 
     // setter for setting stepper speed gwaungi
@@ -89,3 +141,5 @@ void moveJointsTo(float targets[], int numJoints, Joint* joints[], int refSpeed,
     }
   }
 }
+
+

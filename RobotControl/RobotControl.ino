@@ -4,29 +4,64 @@
 int refSpeed = 1000;
 
 // Joint(int stepPin, int dirPin, int homePin, float gearRatio, float stepSize, float upperBoundDEG, float lowerBoundDEG)
-Joint J1 = Joint(J1STEP, J1DIR, J1HOME, 20.0f, 0.45f, 360.0f, 0.0f);
-Joint J2 = Joint(J2STEP, J2DIR, J2HOME, 20.0f, 0.45f, 360.0f, 0.0f);
+Joint J1 = Joint(J1STEP, J1DIR, J1HOME, J1GEARRATIO, STEPSIZE, J1UPPERBOUNDDEG, J1LOWERBOUNDDEG);
+Joint J2 = Joint(J2STEP, J2DIR, J2HOME, J2GEARRATIO, STEPSIZE, J2UPPERBOUNDDEG, J2LOWERBOUNDDEG);
+Joint J3 = Joint(J3STEP, J3DIR, J3HOME, J3GEARRATIO, STEPSIZE, J3UPPERBOUNDDEG, J3LOWERBOUNDDEG);
+Joint J4 = Joint(J4STEP, J4DIR, J4HOME, J4GEARRATIO, STEPSIZE, J4UPPERBOUNDDEG, J4LOWERBOUNDDEG);
+Joint J5 = Joint(J5STEP, J5DIR, J5HOME, J5GEARRATIO, STEPSIZE, J5UPPERBOUNDDEG, J5LOWERBOUNDDEG);
+Joint J6 = Joint(J6STEP, J6DIR, J6HOME, J6GEARRATIO, STEPSIZE, J6UPPERBOUNDDEG, J6LOWERBOUNDDEG);
 
-Joint J5 = Joint(J5STEP, J5DIR, J5HOME, 20.0f, 0.45f, 360.0f, 0.0f);
-Joint J6 = Joint(J6STEP, J6DIR, J6HOME, 20.0f, 0.45f, 360.0f, 0.0f);
+enum ProdState{ // State machine for robot in general
+      HOMING,
+      PROD
+    }
+prodState = HOMING;
 
 void setup() {
-  // set target rotations of joint in degrees (brabr)
-  float targets[] = {90.0f, 180.0f, 90.0f, 180.0f};
-
-  // joint pointer array
-  Joint* joints[] = {&J1, &J2, &J5, &J6};
+  J1.startHoming();
+  J2.startHoming();
+  J3.startHoming();
 
   // set vel and accel according to travel dist, with max v (also set position)
   // moveJointsTo(float targets[], int numJoints, Joint* joints[], int refSpeed, int refAccel, int minSpeed, int minAccel)
-  moveJointsTo(targets, 4, joints, 1000, 400, 0, 0);
+  //moveJointsTo(targets, 6, joints, 1000, 400, 0, 0);
 }
 
 void loop() {
+
+  switch (prodState){
+    case HOMING: // Do nothing, wait for start signal
+      J1.updateHoming();
+      J2.updateHoming();
+      J3.updateHoming();
+      if(J1.isHomed() && J2.isHomed() && J3.isHomed()){
+        prodState = PROD;
+
+        // set target rotations of joint in degrees (brabr)
+        float targets[] = {90.0f, 180.0f, 90.0f, 180.0f, 90.0f, 180.0f};
+        // joint pointer array
+        Joint* joints[] = {&J1, &J2, &J3, &J4, &J5, &J6};
+        moveJointsTo(targets, 6, joints, 1000, 400, 0, 0);
+      }
+      break;
+    
+    // home the first three joints
+    case PROD:
+      J1.run();
+      J2.run();
+      J3.run();
+      J4.run();
+      J5.run();
+      J6.run();
+      break;
+
+  }
+
   // Call all stepper rumn methods
-  J1.run();
-  J2.run();
-  J5.run();
-  J6.run();
+  //J1.run();
+  //J2.run();
+  //J5.run();
+  //J6.run();
+  //J5.updateHoming();
   
 }

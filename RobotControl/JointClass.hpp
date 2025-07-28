@@ -18,7 +18,7 @@ class Joint{
       APPROACH,
       HOMED
     };
-    HomingState __homingState = IDLE;   // state machine
+    HomingState __homingState = IDLE;   // homing state machine
 
   public:
     Joint(int stepPin, int dirPin, int homePin, float gearRatio, float stepSize, float upperBoundDEG, float lowerBoundDEG)
@@ -69,7 +69,7 @@ class Joint{
           return;
         
         case SEEK_HOME:
-          if (digitalRead(__homePin) == HIGH){
+          if (digitalRead(__homePin) == LOW){
             __stepper.stop();
             __homingState = BACKOFF;
             __stepper.setMaxSpeed(300);
@@ -87,7 +87,7 @@ class Joint{
           break;
         
         case APPROACH:
-          if (digitalRead(__homePin) == HIGH){
+          if (digitalRead(__homePin) == LOW){
             	__stepper.stop();
               __stepper.setCurrentPosition(0);
               __homingState = HOMED;
@@ -111,7 +111,7 @@ class Joint{
       __stepper.move(-100000);
 
       // while sensor is not triggered, run
-      while(digitalRead(__homePin) == LOW){
+      while(digitalRead(__homePin) == HIGH){
         __stepper.run();
       }
 
@@ -136,7 +136,7 @@ class Joint{
       __stepper.move(-10000);
 
       // while sensor not triggered, run again
-      while(digitalRead(__homePin) == LOW){
+      while(digitalRead(__homePin) == HIGH){
         __stepper.run();
       }
 

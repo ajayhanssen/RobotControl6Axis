@@ -193,4 +193,18 @@ void moveJointsTo(float targets[], int numJoints, Joint* joints[], int refSpeed,
   }
 }
 
+void runJoints(Joint* joints[], int numJoints){
+  for (int i=0; i < numJoints; i++){
+    joints[i]->run();
+  }
+}
+
+bool JointsReachedTargets(float targets[], int numJoints, Joint* joints[]){
+  for (int i=0; i < numJoints; i++){
+    if (joints[i]->getPosition() != joints[i]->degPos2stepPos(targets[i])){
+      return false;
+    }
+  }
+  return true;
+}
 

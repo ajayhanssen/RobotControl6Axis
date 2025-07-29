@@ -1,4 +1,4 @@
-function angles = kart2angle(trans)
+function angles = kart2angle(arduino, trans)
     load("robot_v2.mat");
 
     targetPos = [150e-3;
@@ -13,14 +13,10 @@ function angles = kart2angle(trans)
     initGuess = [0 -pi/2 pi 0 0 pi]';
     
     [configSol, solInfo] = ik('rigidBody_link_6', targetPose, weights, initGuess);
-    configSol
+    configSol = configSol.*360./(2*pi)
 
-    arduino = serialport("COM3", 9600);
-    pause(2)
-
-    write(arduino, 'A', 'char');
-
-    % close conmnection
-    clear arduino
+    for i = 1:length(configSol)
+        write(arduino, configSol(i), 'uint16');
+    end
 
 end

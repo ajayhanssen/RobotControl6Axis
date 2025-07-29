@@ -44,6 +44,8 @@ void clearSerialBuffer() {
 }
 
 void setup() {
+
+  Serial.begin(9600);
   // set target rotations of joint in degrees (brabr)
   //float targets[] = {90.0f, 180.0f, 90.0f, 180.0f, 90.0f, 180.0f};
 

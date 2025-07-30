@@ -35,7 +35,7 @@ enum ProdState{ // State machine for robot in general
       LISTENING,
       MOVING
     }
-prodState = IDLE;
+prodState = LISTENING;
 
 void clearSerialBuffer() {
   while (Serial.available() > 0) {
@@ -183,5 +183,6 @@ void loop() {
         prodState = LISTENING;
         clearSerialBuffer();
       }
+      break;
   }
 }

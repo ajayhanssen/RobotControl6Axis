@@ -23,7 +23,7 @@ void loop() {
       jointangles[i] = (float)receivedVals[i] / 100.0f;
     }
 
-    if (jointangles[0] == 56.09){
+    if (receivedVals[0] == 60){
       digitalWrite(LED_BUILTIN, HIGH);
     }
   }

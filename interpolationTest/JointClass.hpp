@@ -43,20 +43,9 @@ class Joint{
     }
 
     // setting the target rotation of the stepper in steps from degs given
-    int setTargetRotJoint(float deg, bool ignoreBounds){
+    void setTargetRotJoint(float deg){
       int targetPos = degPos2stepPos(deg);
-      __stepper.moveTo(targetPos); // DEWBUG ONLY
-      return 0;
-
-      int upperBoundSTEP = degPos2stepPos(__upperBoundDEG);
-      int lowerBoundSTEP = degPos2stepPos(__lowerBoundDEG);
-      if (ignoreBounds){
-        __stepper.moveTo(targetPos);
-      }else if (targetPos <= upperBoundSTEP && targetPos >= lowerBoundSTEP){
-        __stepper.moveTo(targetPos);
-      }else{
-        return -1;
-      }
+      __stepper.moveTo(targetPos);
     }
 
     // init state machine, fast movement to sens
@@ -171,7 +160,7 @@ class Joint{
     }
 };
 
-void moveJointsTo(float targets[], int numJoints, Joint* joints[], int refSpeed, int refAccel, int minSpeed, int minAccel, bool ignoreBounds){
+void moveJointsTo(float targets[], int numJoints, Joint* joints[], int refSpeed, int refAccel, int minSpeed, int minAccel){
   long deltas[numJoints];
   long maxDelta = 0;
 
@@ -183,7 +172,7 @@ void moveJointsTo(float targets[], int numJoints, Joint* joints[], int refSpeed,
     if (delta > maxDelta) {
       maxDelta = delta;
     }
-    joints[i]->setTargetRotJoint(targets[i], ignoreBounds);
+    joints[i]->setTargetRotJoint(targets[i]);
   }
 
   for (int i=0; i < numJoints; i++){
@@ -214,4 +203,9 @@ bool JointsReachedTargets(float targets[], int numJoints, Joint* joints[]){
   }
   return true;
 }
+
+
+
+
+
 

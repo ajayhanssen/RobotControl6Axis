@@ -24,6 +24,7 @@ Joint* joints[] = {&J1, &J2, &J3, &J4, &J5, &J6};
 
 enum ProdState{ // State machine for robot in general
       IDLE,
+      STARTHOMING,
       HOME123,
       STDCONFIG123,
       HOME4,
@@ -33,6 +34,7 @@ enum ProdState{ // State machine for robot in general
       HOME5,
       STDCONFIG56,
       LISTENING,
+      PARSINGJOINTROT,
       MOVING
     }
 prodState = LISTENING;
@@ -46,6 +48,7 @@ void clearSerialBuffer() {
 void setup() {
 
   Serial.begin(9600);
+  pinMode(LED_BUILTIN, OUTPUT);
   // set target rotations of joint in degrees (brabr)
   //float targets[] = {90.0f, 180.0f, 90.0f, 180.0f, 90.0f, 180.0f};
 
@@ -59,16 +62,20 @@ void loop() {
   switch (prodState){
     case IDLE: // Do nothing, wait for start signal
       if (true){ // do start button later
-        prodState = HOME123;
-        J1.startHoming();
-        J2.startHoming();
-        J3.startHoming();
+        prodState = STARTHOMING;
       }
       break;
     
     //////////////
     //- homing -//
     //////////////
+
+    case STARTHOMING:
+      J1.startHoming();
+      J2.startHoming();
+      J3.startHoming();
+      prodState = HOME123;
+      break;
 
     // home the first three joints
     case HOME123:
@@ -79,7 +86,7 @@ void loop() {
         prodState = STDCONFIG123;
         Joint* joints123[] = {&J1, &J2, &J3};
         float targets123[] = {J1HOME2STDDEG, J2HOME2STDDEG, J3HOME2STDDEG};
-        moveJointsTo(targets123, 3, joints123, refSpeed, refAccel, minSpeed, minAccel);
+        moveJointsTo(targets123, 3, joints123, refSpeed, refAccel, minSpeed, minAccel, true);
       }
       break;
 
@@ -102,7 +109,7 @@ void loop() {
         prodState = STDCONFIG4;
         Joint* joints4[] = {&J4};
         float targets4[] = {J4HOME2STDDEG};
-        moveJointsTo(targets4, 1, joints4, refSpeed, refAccel, minSpeed, minAccel);
+        moveJointsTo(targets4, 1, joints4, refSpeed, refAccel, minSpeed, minAccel, true);
       }
       break;
 
@@ -122,7 +129,7 @@ void loop() {
         prodState = HOMINGPOS5;
         Joint* joints6[] = {&J6};
         float targets6[] = {J6HOMEPOS5};
-        moveJointsTo(targets6, 1, joints6, refSpeed, refAccel, minSpeed, minAccel);
+        moveJointsTo(targets6, 1, joints6, refSpeed, refAccel, minSpeed, minAccel, true);
       }
       break;
     
@@ -142,7 +149,7 @@ void loop() {
         prodState = STDCONFIG56;
         Joint* joints56[] = {&J5, &J6};
         float targets56[] = {J5HOME2STDDEG, J6HOME2STDDEG};
-        moveJointsTo(targets56, 2, joints56, refSpeed, refAccel, minSpeed, minAccel);
+        moveJointsTo(targets56, 2, joints56, refSpeed, refAccel, minSpeed, minAccel, true);
       }
       break;
 
@@ -161,21 +168,47 @@ void loop() {
     ////////////////////////
 
     case LISTENING:
-      
+
+      if (Serial.available() >= 1){
+        char cmd = Serial.read(); // read command type
+
+        switch (cmd){
+          case 'H':
+            prodState = STARTHOMING;
+            break;
+
+          case 'J': // Receive 6 joint position values to move to
+            prodState = PARSINGJOINTROT;
+            break;
+          
+          case 'S':
+            Serial.print('O');
+            break;
+          
+          default:
+            //clearSerialBuffer();
+            break;
+        }
+      }
+      break;
+    
+    case PARSINGJOINTROT:
       if (Serial.available() >= NUM_JOINTS * 2){
         uint8_t buffer[NUM_JOINTS * 2];
         Serial.readBytes(buffer, NUM_JOINTS * 2);
 
         for (int i=0; i < NUM_JOINTS; i++){
           // Matlab schickt Little-Endian -> erst niederwertiges Byte (buffer[2*i]), dann höherwertiges (buffer[2*i + 1])
-        	// Bitverschiebung des höherwertigen Bytes um 8 nach links, bitweises ODER zum Hinzufügen des niederwertigen Bytes; casten zu int16_t
+          // Bitverschiebung des höherwertigen Bytes um 8 nach links, bitweises ODER zum Hinzufügen des niederwertigen Bytes; casten zu int16_t
           receivedVals[i] = (int16_t)(buffer[2 * i + 1] << 8 | buffer[2 * i]);
           targets[i] = (float)receivedVals[i] / 100.0f;
         }
+        if (targets[0] == 5.0) {digitalWrite(LED_BUILTIN, HIGH);}
         prodState = MOVING;
-        moveJointsTo(targets, NUM_JOINTS, joints, refSpeed, refAccel, minSpeed, minAccel);
+        moveJointsTo(targets, NUM_JOINTS, joints, refSpeed, refAccel, minSpeed, minAccel, false);
       }
       break;
+      
     
     case MOVING:
       runJoints(joints, NUM_JOINTS);

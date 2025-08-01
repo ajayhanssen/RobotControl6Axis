@@ -98,6 +98,9 @@ void loop() {
       if (J1.getPosition() == J1.degPos2stepPos(J1HOME2STDDEG) && J2.getPosition() == J2.degPos2stepPos(J2HOME2STDDEG)
        && J3.getPosition() == J3.degPos2stepPos(J3HOME2STDDEG)){
         prodState = HOME4;
+        J1.setPosition(0);
+        J2.setPosition(0);
+        J3.setPosition(0);
         J4.startHoming();
       }
       break;
@@ -118,6 +121,7 @@ void loop() {
       J4.run();
       if(J4.getPosition() == J4.degPos2stepPos(J4HOME2STDDEG)){
         prodState = HOME6;
+        J4.setPosition(0);
         J6.startHoming();
       }
       break;
@@ -159,6 +163,8 @@ void loop() {
       J6.run();
       if (J5.getPosition() == J5.degPos2stepPos(J5HOME2STDDEG) && J6.getPosition() == J6.degPos2stepPos(J6HOME2STDDEG)){
         prodState = LISTENING;
+        J5.setPosition(0);
+        J6.setPosition(0);
       }
       break;
 

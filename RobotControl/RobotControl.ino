@@ -220,6 +220,7 @@ void loop() {
       runJoints(joints, NUM_JOINTS);
       if (JointsReachedTargets(targets, NUM_JOINTS, joints)){
         prodState = LISTENING;
+        Serial.print("D"); // Send acknowledgement, motion is done
         clearSerialBuffer();
       }
       break;

@@ -13,9 +13,29 @@ a_5 = 176.35e-3;
 a_6 = 62.8e-3;
 a_7 = 45.25e-3;
 
+q1 = [1.5708
+    0.0002
+   -0.0002
+    1.5708
+    0.7854
+   -1.5708];
+
+q2 = [1.5708
+    0.0002
+   -0.0002
+   -0.7854
+   -0.7854
+   -4.7124
+];
+
 ee = robot.BodyNames{end};
 
-show(robot, [0;0;0;0;0;0]);
+figure(1)
+show(robot, q1);
+axis([-500e-3 500e-3 -500e-3 500e-3 0 500e-3]);
+
+figure(2)
+show(robot, q2)
 axis([-500e-3 500e-3 -500e-3 500e-3 0 500e-3]);
 
 tic
@@ -38,9 +58,9 @@ jointBounds = constraintJointBounds(robot);
 
 initGuessConfig = [0 0 0 0 0 0]';
 
-tic
-[config, info] = gik(initGuessConfig , posTgt, oriTgt, jointBounds);
-toc
+% tic
+% [config, info] = gik(initGuessConfig , posTgt, oriTgt, jointBounds);
+% toc
 
-show(robot, config);
-axis([-500e-3 500e-3 -500e-3 500e-3 0 500e-3]);
+% show(robot, config);
+% axis([-500e-3 500e-3 -500e-3 500e-3 0 500e-3]);

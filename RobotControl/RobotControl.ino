@@ -48,7 +48,7 @@ void clearSerialBuffer() {
 void setup() {
 
   Serial.begin(9600);
-  pinMode(LED_BUILTIN, OUTPUT);
+  //pinMode(LED_BUILTIN, OUTPUT);
   // set target rotations of joint in degrees (brabr)
   //float targets[] = {90.0f, 180.0f, 90.0f, 180.0f, 90.0f, 180.0f};
 
@@ -184,6 +184,7 @@ void loop() {
             break;
 
           case 'J': // Receive 6 joint position values to move to
+            Serial.print("R");
             prodState = PARSINGJOINTROT;
             break;
           
@@ -209,7 +210,6 @@ void loop() {
           receivedVals[i] = (int16_t)(buffer[2 * i + 1] << 8 | buffer[2 * i]);
           targets[i] = (float)receivedVals[i] / 100.0f;
         }
-        if (targets[0] == 5.0) {digitalWrite(LED_BUILTIN, HIGH);}
         prodState = MOVING;
         moveJointsTo(targets, NUM_JOINTS, joints, refSpeed, refAccel, minSpeed, minAccel, false);
       }
@@ -221,6 +221,7 @@ void loop() {
       if (JointsReachedTargets(targets, NUM_JOINTS, joints)){
         prodState = LISTENING;
         Serial.print("D"); // Send acknowledgement, motion is done
+        delay(10);
         clearSerialBuffer();
       }
       break;

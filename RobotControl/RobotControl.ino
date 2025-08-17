@@ -71,17 +71,17 @@ void loop() {
     //////////////
 
     case STARTHOMING:
-      J1.startHoming();
-      J2.startHoming();
-      J3.startHoming();
+      J1.startHoming(J1HOMEDIR);
+      J2.startHoming(J2HOMEDIR);
+      J3.startHoming(J3HOMEDIR);
       prodState = HOME123;
       break;
 
     // home the first three joints
     case HOME123:
-      J1.updateHoming();
-      J2.updateHoming();
-      J3.updateHoming();
+      J1.updateHoming(J1HOMEDIR);
+      J2.updateHoming(J2HOMEDIR);
+      J3.updateHoming(J3HOMEDIR);
       if (J1.isHomed() && J2.isHomed() && J3.isHomed()){
         prodState = STDCONFIG123;
         Joint* joints123[] = {&J1, &J2, &J3};
@@ -101,13 +101,13 @@ void loop() {
         J1.setPosition(0);
         J2.setPosition(0);
         J3.setPosition(0);
-        J4.startHoming();
+        J4.startHoming(J4HOMEDIR);
       }
       break;
 
     // home joint 4
     case HOME4:
-      J4.updateHoming();
+      J4.updateHoming(J4HOMEDIR);
       if (J4.isHomed()){
         prodState = STDCONFIG4;
         Joint* joints4[] = {&J4};
@@ -122,13 +122,13 @@ void loop() {
       if(J4.getPosition() == J4.degPos2stepPos(J4HOME2STDDEG)){
         prodState = HOME6;
         J4.setPosition(0);
-        J6.startHoming();
+        J6.startHoming(J6HOMEDIR);
       }
       break;
     
     // home joint 6
     case HOME6:
-      J6.updateHoming();
+      J6.updateHoming(J6HOMEDIR);
       if (J6.isHomed()){
         prodState = HOMINGPOS5;
         Joint* joints6[] = {&J6};
@@ -142,13 +142,13 @@ void loop() {
       J6.run();
       if (J6.getPosition() == J6.degPos2stepPos(J6HOMEPOS5)){
         prodState = HOME5;
-        J5.startHoming();
+        J5.startHoming(J5HOMEDIR);
       }
       break;
 
     // home joint 5
     case HOME5:
-      J5.updateHoming();
+      J5.updateHoming(J5HOMEDIR);
       if (J5.isHomed()){
         prodState = STDCONFIG56;
         Joint* joints56[] = {&J5, &J6};

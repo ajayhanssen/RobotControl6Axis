@@ -60,15 +60,25 @@ class Joint{
     }
 
     // init state machine, fast movement to sens
-    void startHoming(){
+    void startHoming(uint homingDIR){
+      uint sign = -1;
+      if (homingDIR){
+        sign = 1;
+      }
+
       __homingState = SEEK_HOME;
       __stepper.setMaxSpeed(500);
       __stepper.setAcceleration(300);
-      __stepper.move(-100000);
+      __stepper.move(-100000 * sign);
     }
 
     // not blocking homing process
-    void updateHoming(){
+    void updateHoming(uint homingDIR){
+      uint sign = -1;
+      if (homingDIR){
+        sign = 1;
+      }
+
       switch (__homingState){
         case IDLE:
           return;
@@ -80,7 +90,7 @@ class Joint{
             __stepper.stop();
             __homingState = BACKOFF;
             __stepper.setMaxSpeed(300);
-            __stepper.move(500);
+            __stepper.move(500 * sign);
           }
           break;
 
@@ -89,7 +99,7 @@ class Joint{
             __homingState = APPROACH;
             __stepper.setMaxSpeed(100);
             __stepper.setAcceleration(50);
-            __stepper.move(-1000);
+            __stepper.move(-1000 * sign);
           }
           break;
         
